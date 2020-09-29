@@ -6,9 +6,27 @@ const bcrypt = require('bcryptjs');   //  encrypt password
 // Check validation for requests 
 const { check, validationResult } = require('express-validator');
 const gravatar = require('gravatar');  // get user image by email
+const auth = require('../middleware/auth');
 
 // Models
 const User = require('../models/User');
+
+
+// @Route POST api/user
+// @decs  User Information
+// @access Private 
+router.get('/', auth, async (req, res) => {
+	try {
+		// get user information by id 
+		const user = await User.findById(req.user.id).select('-password');
+		res.json(user)
+	} catch (error) {
+		console.log(error.message)
+		res.status(500).send('Server Error');
+	}
+})
+
+
 
 // @Route POST api/users/register 
 // @decs  Register user 
@@ -91,6 +109,76 @@ router.post('/register', [
 		res.status(500).send('Server error')
 	}
 });
+
+// @Route POST api/user/login 
+// @decs  Login user 
+// @access Public
+router.post('/login', [
+	check('email', 'please include a valid email').isEmail(),
+	check('password', 'password is required').exists()
+], async (req, res) => {
+
+	//If error
+	const errors = validationResult(req);
+	if (!errors.isEmpty()) {
+		return res.status(400).json({
+			errors: errors.array()
+		})
+	}
+	
+	// If everything is good 
+	// Get email and password from request body 
+	const {email, password} = req.body;
+
+	try {
+		// find user 
+		let user =await User.findOne({
+			email
+		});
+
+		if (!user) {
+			return res.status(400).json({
+				errors: [{
+					msg : 'Invalid credentials'
+				}]
+			})
+		}
+
+		// Know user founded by email let's compare password 
+		const isMatch = await bcrypt.compare(password, user.password);
+
+		// password don't match 
+		if (!isMatch) {
+			return res.status(400).json({
+				errors:[{
+					msg: 'Invalid credentials'
+				}]
+			})
+		}
+
+		// payload for jwt
+		const payload = {
+			user: {
+				id: user.id
+			}
+		}
+
+		jwt.sign(
+			payload,
+			process.env.JWT_SECRET,{
+				expiresIn: 360000
+			}, (err, token) => {
+				if (err) throw err;
+				res.json({token})
+			}
+		)
+
+
+	} catch (error) {
+		console.log(err.message)
+		res.status(500).send('Server error')
+	}
+})
 
 
 module.exports = router;
