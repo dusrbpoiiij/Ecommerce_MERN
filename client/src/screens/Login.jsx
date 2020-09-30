@@ -4,11 +4,10 @@ import {connect} from 'react-redux'
 import Button from '../components/buttons/button.component'
 import Container from '../components/container/container.component'
 import FormInput from '../components/inputs/form.input.component'
-import {register} from '../data/reducers/auth'
-import './loading.css'
+import {login} from '../data/reducers/auth'
 import { Redirect } from 'react-router-dom';
 
-const Register = ({register, isAuth, isLoading, user}) => {
+const Login = ({login, isAuth, isLoading, user}) => {
   const [data, setData] = useState({
     name:"",
     email:"",
@@ -16,7 +15,7 @@ const Register = ({register, isAuth, isLoading, user}) => {
     confirmPassword:"",
   })
 
-  const {name, email, password, confirmPassword} = data
+  const {email, password} = data
 
   const handleChange = (name) => event => {
     setData({...data, [name]: event.target.value})
@@ -25,12 +24,10 @@ const Register = ({register, isAuth, isLoading, user}) => {
   const onSubmit = async (e) => {
     e.preventDefault();
     
-    if(password !== confirmPassword) {
-      toast.success('Passwords do not match');
-    } else if (!name || !email || !password) {
+    if (!email || !password) {
       toast.error('Please fill all fields');
     } else {
-      register({name, email, password})
+      login({email, password})
     }
   };
 
@@ -47,14 +44,7 @@ const Register = ({register, isAuth, isLoading, user}) => {
         className='bg-white rounded-lg overflow-hidden shadow-2xl p-5 my-16
                     md:w-1/2 lg:w-1/3 mx-auto flex flex-col'
         onSubmit={onSubmit}>
-        <h2 className='font-bold text-3xl text-center mb-5'>Register</h2>
-          <FormInput 
-            title='Name'
-            placeholder='Congar'
-            value={name}
-            handleChange={handleChange('name')}
-            type='text'
-          />
+        <h2 className='font-bold text-3xl text-center mb-5'>Login</h2>
           <FormInput 
             title='Email'
             placeholder='Congar@naver.com'
@@ -69,24 +59,18 @@ const Register = ({register, isAuth, isLoading, user}) => {
             handleChange={handleChange('password')}
             type='password'
           />
-          <FormInput 
-            title='Confirm Password'
-            placeholder='********'
-            value={confirmPassword}
-            handleChange={handleChange('confirmPassword')}
-            type='password'
-          />
+
           {isLoading && <div id="loading" className='self-center mb-3'></div> }
           {!isLoading && <Button 
-          title='SignUp'
+          title='SignIn'
           moreStyle='bg-primary text-white w-full mb-3'
           type='submit'/>}
           
           <div className='flex justify-end w-full'>
             <Button 
               isButton={false}
-              title='already have an account ?'
-              href='/login'
+              title='did you need a new account?'
+              href='/register'
               moreStyle='text-gray-600'
             />
           </div>
@@ -100,4 +84,4 @@ const mapToStateProps = state => ({
   isLoading : state.auth.loading,
   user: state.auth.user
 })
-export default connect(mapToStateProps, {register})(Register);
+export default connect(mapToStateProps, {login})(Login);

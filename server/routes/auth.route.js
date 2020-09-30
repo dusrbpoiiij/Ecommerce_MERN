@@ -41,12 +41,10 @@ router.post('/register', [
 ], async (req, res) => {
 	const errors = validationResult(req);
 	if (!errors.isEmpty()) {
-		console.log("asd");
 		return res.status(400).json({
 			errors: errors.array()
 		});
 	}
-	console.log("asqweqwed");
 	// Get name and email and password from request 
 	const { name, email, password } = req.body;
 
