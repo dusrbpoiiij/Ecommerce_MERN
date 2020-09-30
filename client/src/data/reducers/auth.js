@@ -1,10 +1,13 @@
 import axios from 'axios'
 import { toast } from 'react-toastify'
+import setAuthToken from '../../helpers/setAuthToken'
 import { URLDevelopment } from '../../helpers/URL'
 
 // Types 
 const REGISTER_SUCCESS = "REGISTER_SUCCESS"
 const REGISTER_FAIL = "REGISTER_FAIL"
+const USER_LOADED = "USER_LOADED"
+const AUTH_ERROR = "AUTH_ERROR"
 
 // Initial State 
 const initialState = {
@@ -19,6 +22,14 @@ export default function(state = initialState, action) {
   const {type, payload} = action
   
   switch (type) {
+    case USER_LOADED:
+      return {
+        ...state,
+        user: payload,
+        isAuthenticated: true,
+        loading: false
+      }
+    
     case REGISTER_SUCCESS:
       // Set Token in localstorage
       localStorage.setItem('token', payload.token)
@@ -30,6 +41,7 @@ export default function(state = initialState, action) {
       }
 
     case REGISTER_FAIL:
+    case AUTH_ERROR:
       // Remove Token in localstorage
       localStorage.removeItem('token')
       return {
@@ -38,12 +50,32 @@ export default function(state = initialState, action) {
         isAuthenticated: false,
         loading: false,
       }
+
     default:
       return state;
   }
 }
 
 // Actions 
+export const loadUser = () => async (dispatch) => {
+  if(localStorage.token) {
+    setAuthToken(localStorage.token)
+  }
+
+  try {
+    const res = await axios.get(`${URLDevelopment}/api/user`);
+    dispatch({
+      type: USER_LOADED,
+      payload: res.data
+    })
+  } catch (error) {
+    console.log(error.response);
+    dispatch({
+      type:AUTH_ERROR
+    })
+  }
+}
+
 export const register = ({name, email, password}) => async(dispatch) => {
   
   // config header for axios 
