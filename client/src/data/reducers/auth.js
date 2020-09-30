@@ -8,6 +8,8 @@ const REGISTER_SUCCESS = "REGISTER_SUCCESS"
 const REGISTER_FAIL = "REGISTER_FAIL"
 const USER_LOADED = "USER_LOADED"
 const AUTH_ERROR = "AUTH_ERROR"
+const LOGOUT = "LOGOUT"
+const SET_LOADING = "SET_LOADING"
 
 // Initial State 
 const initialState = {
@@ -40,8 +42,14 @@ export default function(state = initialState, action) {
         loading: false,
       }
 
+    case SET_LOADING:
+      return {
+        ...state,
+        loading:true
+      }
     case REGISTER_FAIL:
     case AUTH_ERROR:
+    case LOGOUT:
       // Remove Token in localstorage
       localStorage.removeItem('token')
       return {
@@ -76,6 +84,7 @@ export const loadUser = () => async (dispatch) => {
   }
 }
 
+
 export const register = ({name, email, password}) => async(dispatch) => {
   
   // config header for axios 
@@ -88,6 +97,9 @@ export const register = ({name, email, password}) => async(dispatch) => {
   // Set body 
   const body = JSON.stringify({name, email, password});
 
+  dispatch({
+    type: SET_LOADING
+  })
   try {
     // Response 
     const res = await axios.post(`${URLDevelopment}/api/user/register`, body, config);
@@ -96,6 +108,9 @@ export const register = ({name, email, password}) => async(dispatch) => {
       type: REGISTER_SUCCESS,
       payload: res.data
     })
+
+    dispatch(loadUser())
+
   } catch(error) {
     const errors = error.response.data.errors
     if (errors) {
@@ -106,4 +121,11 @@ export const register = ({name, email, password}) => async(dispatch) => {
       type: REGISTER_FAIL
     })
   }
+}
+
+
+export const logout = () => dispatch => {
+  dispatch({
+    type:LOGOUT
+  })
 }
