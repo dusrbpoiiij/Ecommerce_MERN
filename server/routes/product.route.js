@@ -6,6 +6,7 @@ const adminAuth = require('../middleware/adminAuth');
 const formidable = require('formidable');
 const fs = require('fs');
 const { Router } = require('express');
+const productById = require('../middleware/productById');
 
 // @route Post /api/product/
 // @desc Create a Product 
@@ -65,5 +66,27 @@ router.post('/', auth, adminAuth, (req, res) => {
 })
 
 
+// @route Get /api/product/productId
+// @desc Get a Product Information
+// @access Public
+router.get('/:productId', productById, (req, res) => {
+  req.product.photo = undefined;
+  return res.json(req.product)
+})
+
+
+// @route Get /api/product/photo/productId
+// @desc Get a Product Information
+// @access Public
+router.get('/photo/:productId', productById, (req, res) => {
+  if(req.product.photo.data) {
+    res.set('Content-Type', req.product.photo.contentType)
+    return res.send(req.product.photo.data);
+  }
+
+  res.status(400).json({
+    error: 'failed to load image'
+  })
+})
 
 module.exports = router
