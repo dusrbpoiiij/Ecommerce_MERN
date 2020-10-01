@@ -3,6 +3,7 @@ const router = express.Router();
 const Category = require('../models/Category');
 const auth = require('../middleware/auth');
 const adminAuth = require('../middleware/adminAuth');
+const categoryById = require('../middleware/categoryById');
 
 const {check, validationResult} = require('express-validator');
 
@@ -52,6 +53,14 @@ router.get('/all', async (req, res) => {
     console.log(erorr)
     res.status(500).send('Server error')
   }
+})
+
+
+// @Route GET api/category/:categoryId
+// @decs  GET Single categories
+// @access Public
+router.get('/:categoryId', categoryById,  async (req, res) => {
+  res.json(req.category);
 })
 
 module.exports = router
