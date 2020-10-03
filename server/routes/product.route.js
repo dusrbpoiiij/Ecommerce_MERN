@@ -8,6 +8,32 @@ const fs = require('fs');
 const { Router } = require('express');
 const productById = require('../middleware/productById');
 
+// @route Get /api/product/list
+// @desc Get a list of products with filter
+// options (order= asc or desc, sortBy any product property like name, limit, number of returned product)
+// @access Public
+router.get('/list', async (req, res) => {
+  let order = req.query.order ? req.query.order : 'asc';
+  let sortBy = req.query.sortBy ? req.query.sortBy : '_id';
+  let limit = req.query.limit ? parseInt(req.query.limit) : 6;
+
+  try {
+    let products = await Product.find({})
+      .select('-photo')
+      .populate('category')
+      .sort([
+        [sortBy, order]
+      ])
+      .limit(limit).exec();
+
+      res.json(products);
+  } catch (error) {
+    console.log(error);
+    res.status(500).send('Invalid querys');
+  }
+})
+
+
 // @route Post /api/product/
 // @desc Create a Product 
 // @access Private Admin
@@ -88,5 +114,11 @@ router.get('/photo/:productId', productById, (req, res) => {
     error: 'failed to load image'
   })
 })
+
+
+
+
+
+
 
 module.exports = router
